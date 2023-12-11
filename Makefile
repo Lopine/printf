@@ -1,28 +1,70 @@
-NAME	= ft_printf.a
-CC	= gcc
-RM	= rm -rf
-CFALGS	= -Wall -Wextra -Werror -Isrc -Iinclude
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: plachard <plachard@student.s19.be>         +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2023/12/11 12:34:29 by plachard          #+#    #+#              #
+#    Updated: 2023/12/11 12:34:45 by plachard         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
-VPATH	= src
-SRCS	= ft_printf.c ft_printformat.c ft_libft.c
+#	Variables
+NAME		=	libftprintf.a
+RM			= 	rm -rf
+INCLUDE		=	include
+LIBFT		=	libft
+SRC_DIR		=	src/
+OBJ_DIR		=	obj/
+RM			=	rm -f
+AR			=	ar rcs
 
-OBJS	= $(addprefix obj/, $(SRCS:.c=.o))
+#	Compiler
+CC			=	@cc
+CFLAGS		=	-Wall -Wextra -Werror -I
 
-$(NAME): $(OBJS)
-		ar rcs $(NAME) $(OBJS)
+#	Path and Files
+SRC_FILES	=	ft_printf ft_printformat
 
-all:	 $(NAME)
+SRC 		= 	$(addprefix $(SRC_DIR), $(addsuffix .c, $(SRC_FILES)))
+OBJ 		= 	$(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC_FILES)))
 
-obj:
-		mkdir -p obj
+#	Rules
+OBJF		=	.cache_exists
 
-obj/%.o: %.c | obj
-		$(CC) $(CFLAGS) -o $* -c $<
+all:		$(NAME)
+
+$(NAME):	$(OBJ)
+			@make -C $(LIBFT)
+			@cp libft/libft.a .
+			@mv libft.a $(NAME)
+			@$(AR) $(NAME) $(OBJ)
+
+$(OBJ_DIR)%.o: $(SRC_DIR)%.c | $(OBJF)
+			@$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+$(OBJF):
+			@mkdir -p $(OBJ_DIR)
 
 clean:
-		$(RM) obj
+			@$(RM) -rf $(OBJ_DIR)
+			@make clean -C $(LIBFT)
 
-fclean: clean
-		$(RM) $(NAME)
+fclean:		clean
+			@$(RM) -f $(NAME)
+			@$(RM) -f $(LIBFT)/libft.a
 
-re:	fclean all
+re:			fclean all
+
+test:
+	gcc -c main.c -Iinclude -Isrc -I./libft/
+	gcc -o test main.o $(NAME)
+	rm -f $(OBJ)
+
+tclean:
+	rm -f test
+	rm -f main.o
+
+norm:
+			@norminette $(SRC) $(INCLUDE) $(LIBFT) | grep -v Norme -B1 || true
